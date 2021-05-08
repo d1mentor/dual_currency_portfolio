@@ -12,6 +12,8 @@ require 'nokogiri'
 require 'net/http'
 require_relative 'lib/centrobank'
 
+INPUT_ERROR_MSG = 'Некорректный ввод! Попробуйте еще раз.'
+
 bank = Centrobank::get_courses
 
 puts 'Валюта №1 по умолчанию - RUB'
@@ -27,7 +29,7 @@ loop do
   if bank.vaults.key?(user_choice)
     break
   else
-    puts 'Некорректный ввод! Попробуйте еще раз.'
+    puts INPUT_ERROR_MSG
   end
 end
 
@@ -37,6 +39,10 @@ puts "\nПараметры текущего портфеля:"
 puts "Валюты: RUB(рубли) - #{second_vault['char_code']}(#{second_vault['name']})"
 puts "Текущий курс: #{second_vault['course']} RUB = 1 #{second_vault['char_code']}"
 
+rub_count = 0
+second_vault_count = 0
+
+puts 'Вводите целое число, при некорректном вводе, по умолчанию установится 0'
 print 'Сколько у вас RUB:'
 rub_count = gets.to_i
 print "Сколько у вас #{second_vault['char_code']}:"
