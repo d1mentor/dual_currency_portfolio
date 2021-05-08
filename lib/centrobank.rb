@@ -1,7 +1,7 @@
 class Centrobank
   attr_reader :vaults
 
-  URL = 'https://www.cbr.ru/currency_base/daily/'.freeze
+  URL = 'https://www.cbr.ru/currency_base/daily/'
 
   def initialize(args)
     @vaults = args
@@ -21,7 +21,6 @@ class Centrobank
       vault_count = tr.elements[2].content.to_i
       vault_course = tr.elements[4].content.to_f
 
-      #Записываем данные в формате Код_валюты: ['название_валюты', количество, курс]
       args[vault_char_code] = [vault_name, vault_count, vault_course]
     end
 
@@ -33,7 +32,7 @@ class Centrobank
     @vaults.each do |vault_char_code, info|
       result_str << " #{vault_char_code} - #{info[0]}\n"
     end
-    return result_str
+    result_str
   end
 
   def get_vault_data(vault_char_code)
@@ -41,11 +40,9 @@ class Centrobank
     vault_course = @vaults[vault_char_code][2] / @vaults[vault_char_code][1]
 
     vault = {
-      "char_code" => vault_char_code,
-      "name" => vault_name,
-      "course" => vault_course.round(2)
+      'char_code' => vault_char_code,
+      'name' => vault_name,
+      'course' => vault_course.round(2)
     }
-
   end
-
 end
