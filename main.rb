@@ -33,7 +33,7 @@ end
 def calculate(rub, vault, course)
   difference = ((rub - vault * course) / 2).round(2)
 
-  return 0 if difference.abs <= 0
+  return 0 if difference.abs <= 0.1
   difference
 end
 
