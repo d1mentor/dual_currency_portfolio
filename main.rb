@@ -10,7 +10,6 @@ end
 require 'open-uri'
 require 'nokogiri'
 require 'net/http'
-require_relative 'lib/centrobank'
 
 URL = 'https://www.cbr.ru/currency_base/daily/'
 VAULT_CHAR_CODE = 'USD'
@@ -60,4 +59,3 @@ when (0.02..)
 else
   puts "Вам надо купить #{result.abs} RUB"
 end
-
