@@ -12,52 +12,52 @@ require 'nokogiri'
 require 'net/http'
 require_relative 'lib/centrobank'
 
-bank = Centrobank.get_courses
+URL = 'https://www.cbr.ru/currency_base/daily/'
+VAULT_CHAR_CODE = 'USD'
 
-puts 'Валюта №1 по умолчанию - RUB'
-puts 'Необходимо выбрать вторую валюту.'
+def get_course(vault_char_code)
+  html = URI.open(URL)
+  doc = Nokogiri::HTML(html)
+  data = doc.css('.data')
+  tbody = data.xpath('//tbody/tr')
 
-puts bank.to_list
-user_choice = ''
+  tbody.each do |tr|
+    vault_count = tr.elements[2].content.to_i
+    vault_course = tr.elements[4].content.to_f / vault_count
 
-loop do
-  print 'Введите буквенный код валюты:'
-  user_choice = gets.chomp.upcase
-
-  if bank.vaults.key?(user_choice)
-    break
-  else
-    puts 'Некорректный ввод! Попробуйте еще раз.'
+    if tr.elements[1].content == vault_char_code
+      return vault_course
+    end
   end
 end
 
-second_vault = bank.get_vault_data(user_choice)
+def calculate(rub, vault, course)
+  difference = ((rub - vault * course) / 2).round(2)
 
-puts "\nПараметры текущего портфеля:"
-puts "Валюты: RUB(рубли) - #{second_vault['char_code']}(#{second_vault['name']})"
-puts "Текущий курс: #{second_vault['course']} RUB = 1 #{second_vault['char_code']}"
-
-puts 'Вводите целое число, при некорректном вводе, по умолчанию установится 0'
-print 'Сколько у вас RUB:'
-rub_count = gets.to_i
-print "Сколько у вас #{second_vault['char_code']}:"
-second_vault_count = gets.to_i
-
-rub_in_second_vault = rub_count / second_vault['course']
-second_vault_in_rub = second_vault_count * second_vault['course']
-dif = rub_in_second_vault - second_vault_count
-
-# Проверяем не сбалансирован ли портфель
-if dif.abs <= 0.01
-  puts 'Ваш портфель уже сбалансирован'
-  # Если Рублей больше
-elsif rub_in_second_vault > second_vault_count
-  # Считаем разницу
-  # Разницу делим на 2 потому что покупаем за свои деньги
-  difference = ((rub_in_second_vault - second_vault_count) / 2).round(2)
-  puts "Вам надо купить #{second_vault['char_code']} #{difference}"
-else
-  # Если второй валюты больше, все аналогично только в другую сторону)
-  difference = ((second_vault_in_rub - rub_count) / 2).round(2)
-  puts "Вам надо купить RUB #{difference}"
+  return 0 if difference.abs <= 0
+  difference
 end
+
+begin
+  course = get_course(VAULT_CHAR_CODE)
+rescue
+  print 'Невозможно получить курс из сети, введите вручную:'
+  course = gets.to_f
+end
+
+print 'Сколько у вас RUB:'
+rub_count = gets.to_f
+print "Сколько у вас #{VAULT_CHAR_CODE}:"
+vault_count = gets.to_f
+
+result = calculate(rub_count, vault_count, course)
+
+case result
+when 0
+  puts 'Портфель сбалансирован!'
+when (0.02..)
+  puts "Вам надо купить #{(result / course).round(2)} #{VAULT_CHAR_CODE}"
+else
+  puts "Вам надо купить #{result.abs} RUB"
+end
+
